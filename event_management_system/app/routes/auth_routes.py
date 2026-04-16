@@ -3,7 +3,7 @@ Authentication Routes Module
 """
 import time
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from utils.auth import hash_password, verify_password, validate_email, validate_password_strength
+from utils.auth import hash_password, verify_password, validate_email, validate_password_strength, login_required
 from utils.validation import validate_student_registration
 from utils.database import get_one, insert, update
 
