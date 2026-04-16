@@ -85,13 +85,9 @@ def login():
         
         except Exception as e:
             import traceback
-            import logging
             error_trace = traceback.format_exc()
             print(f"Database error: {e}", flush=True)
-            print(f"Full traceback:\n{error_trace}", flush=True)
-            with open('login_error.log', 'a') as f:
-                f.write(f"\n=== LOGIN ERROR ===\n{error_trace}\n")
-            flash('An error occurred. Please try again.', 'danger')
+            flash(f'Login Error: {str(e)}', 'danger')
     
     return render_template('auth/login.html')
 
@@ -217,6 +213,6 @@ def register_organiser():
         
         except Exception as e:
             print(f"Database error: {e}")
-            flash('An error occurred during registration. Please try again.', 'danger')
+            flash(f'Registration Error: {str(e)}', 'danger')
     
     return render_template('auth/register_organiser.html')
