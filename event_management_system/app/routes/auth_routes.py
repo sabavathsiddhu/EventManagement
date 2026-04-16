@@ -161,9 +161,7 @@ def register_student():
         
         except Exception as e:
             print(f"Database error: {e}")
-            flash('An error occurred during registration. Please try again.', 'danger')
-    
-    return render_template('auth/register_student.html')
+            flash(f'Registration Error: {str(e)}', 'danger')
 
 
 @auth_bp.route('/register/organiser', methods=['GET', 'POST'])
