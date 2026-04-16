@@ -138,46 +138,67 @@ def register_student():
                 flash('Email already registered', 'danger')
                 return render_template('auth/register_student.html')
             
-            # Hash password
-            password_hash = hash_password(password)
+            # Get face data
+            face_image_b64 = request.form.get('face_image')
             
-            # Handle Face Capture Data
-            face_data = request.form.get('face_data')
-            face_encoding_binary = None
-            
-            if face_data:
-                try:
-                    from app.modules.face_recognition_module import get_face_manager
-                    import pickle
-                    face_manager = get_face_manager()
-                    
-                    # Process base64 and get encoding
-                    encoding, _ = face_manager.process_base64_face("temp_reg", face_data)
-                    
-                    if encoding is not None:
-                        face_encoding_binary = pickle.dumps(encoding)
-                    else:
-                        flash('No face detected in the photo. Please try again with a clear face shot.', 'warning')
-                        return render_template('auth/register_student.html')
-                except Exception as e:
-                    print(f"Face processing error: {e}")
-            else:
-                flash('Face capture is mandatory for student registration.', 'danger')
-                return render_template('auth, register_student.html')
+            # Basic validation
+            if password != confirm_password:
+                flash('Passwords do not match', 'danger')
+                return render_template('auth/register_student.html')
+                
+            if not face_image_b64:
+                flash('Face capture is required for registration', 'danger')
+                return render_template('auth/register_student.html')
 
-            # Insert student
-            query = """
-                INSERT INTO students 
-                (name, email, password_hash, cgpa, attendance, enrollment_number, department, phone, face_encoding) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            params = (name, email, password_hash, float(cgpa), float(attendance), 
-                     enrollment_number, department, phone, face_encoding_binary)
+            try:
+                # Hash password
+                password_hash = hash_password(password)
+                
+                # 1. First, create a temporary unique ID for the student to save their face
+                import uuid
+                temp_student_id = f"temp_{uuid.uuid4().hex[:8]}"
+                
+                # 2. Process the face image to get encoding
+                from app.modules.face_recognition_module import get_face_manager
+                fm = get_face_manager()
+                face_encoding, face_img_filename = fm.process_base64_face(temp_student_id, face_image_b64)
+                
+                if face_encoding is None:
+                    flash('Could not detect a face in the photo. Please try again with better lighting.', 'danger')
+                    return render_template('auth/register_student.html')
+
+                # 3. Insert student into database
+                query = """
+                    INSERT INTO students (name, email, password_hash, cgpa, attendance, 
+                                       enrollment_number, department, phone, face_encoding)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                # Store the filename or a reference to the pkl as facial encoding identifier
+                face_encoding_ref = f"student_{temp_student_id}.pkl"
+                
+                params = (name, email, password_hash, float(cgpa), float(attendance), 
+                         enrollment_number, department, phone, face_img_filename)
+                
+                student_id = insert(query, params)
+                
+                # 4. Rename face encoding file to match final student_id for consistency
+                try:
+                    import os
+                    old_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'stored_face_encodings', f"{temp_student_id}.pkl")
+                    new_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'stored_face_encodings', f"student_{student_id}.pkl")
+                    if os.path.exists(old_path):
+                        os.rename(old_path, new_path)
+                        # Update database with the proper filename
+                        update("UPDATE students SET face_encoding = %s WHERE student_id = %s", (f"student_{student_id}.pkl", student_id))
+                except Exception as e:
+                    print(f"Error renaming encoding file: {e}")
+
+                flash('Registration successful! You can now log in.', 'success')
+                return redirect(url_for('auth.login'))
             
-            student_id = insert(query, params)
-            
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('auth.login'))
+            except Exception as e:
+                print(f"Database error: {e}")
+                flash(f'Registration Error: {str(e)}', 'danger')
         
         except Exception as e:
             print(f"Database error: {e}")

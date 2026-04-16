@@ -5,169 +5,158 @@
 {% block content %}
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-user-plus"></i> Student Registration</h4>
+        <div class="col-md-9">
+            <div class="card shadow border-0 overflow-hidden">
+                <div class="card-header bg-success text-white py-3">
+                    <h4 class="mb-0 text-center"><i class="fas fa-user-plus"></i> Student Face Registration</h4>
                 </div>
-                <div class="card-body">
-                    <form method="POST">
+                <div class="card-body p-4">
+                    <form method="POST" id="registration-form">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Full Name *</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Password *</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                                <small class="form-text text-muted">Min 8 characters</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="confirm_password" class="form-label">Confirm Password *</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="enrollment_number" class="form-label">Enrollment Number *</label>
-                                <input type="text" class="form-control" id="enrollment_number" name="enrollment_number" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="department" class="form-label">Department</label>
-                                <input type="text" class="form-control" id="department" name="department">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="cgpa" class="form-label">Current CGPA</label>
-                                <input type="number" class="form-control" id="cgpa" name="cgpa" min="0" max="10" step="0.01" value="0">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="attendance" class="form-label">Attendance (%)</label>
-                                <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" step="0.01" value="0">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
-                        </div>
-
-                        <!-- Face Capture Section -->
-                        <div class="card bg-light mb-4 border-0">
-                            <div class="card-body">
-                                <h6 class="card-title text-primary"><i class="fas fa-camera"></i> Face Verification Registration *</h6>
-                                <p class="small text-muted mb-3">Please look directly at your webcam to register your face identity.</p>
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">Login Details</h5>
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="example@college.edu" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">Password *</label>
+                                        <input type="password" class="form-control" id="password" name="password" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="confirm_password" class="form-label">Confirm *</label>
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                    </div>
+                                </div>
                                 
-                                <div id="webcam-container" class="text-center mb-3">
-                                    <video id="webcam" width="320" height="240" autoplay playsinline class="rounded border shadow-sm bg-dark" style="width: 100%; max-width: 400px;"></video>
-                                    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-                                    <div id="capture-overlay" class="mt-2">
-                                        <div id="face-status" class="badge bg-secondary mb-2">Camera Loading...</div>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button type="button" id="start-camera" class="btn btn-sm btn-outline-primary">Enable Camera</button>
-                                            <button type="button" id="capture-pic" class="btn btn-sm btn-primary" disabled>Take Photo</button>
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Academic Details</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="enrollment_number" class="form-label">Enrollment No. *</label>
+                                        <input type="text" class="form-control" id="enrollment_number" name="enrollment_number" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="department" class="form-label">Department</label>
+                                        <input type="text" class="form-control" id="department" name="department" placeholder="e.g. CSE">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cgpa" class="form-label">CGPA</label>
+                                        <input type="number" class="form-control" id="cgpa" name="cgpa" min="0" max="10" step="0.01" value="0">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="attendance" class="form-label">Attendance %</label>
+                                        <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" step="0.01" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 bg-light rounded p-4">
+                                <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-camera"></i> Face Security Registration</h5>
+                                <p class="small text-muted mb-3">The system will use this photo to mark your attendance automatically. Please look directly at the camera.</p>
+                                
+                                <div class="text-center">
+                                    <div id="camera-container" class="position-relative d-inline-block bg-dark rounded border border-3 border-success shadow-sm mb-3" style="width: 100%; max-width: 320px; aspect-ratio: 4/3; overflow: hidden;">
+                                        <video id="video" width="320" height="240" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                        <canvas id="canvas" width="600" height="450" class="d-none"></canvas>
+                                        <div id="capture-overlay" class="position-absolute top-50 start-50 translate-middle d-none text-white badge bg-success p-3 fs-6">
+                                            <i class="fas fa-check-circle fa-2x d-block mb-1"></i> Face Linked!
                                         </div>
                                     </div>
-                                </div>
-                                <div id="preview-container" class="text-center" style="display:none;">
-                                    <img id="face-preview" class="rounded border shadow-sm" style="width: 100%; max-width: 200px;">
-                                    <div class="mt-2">
-                                        <button type="button" id="retake-pic" class="btn btn-sm btn-outline-secondary">Retake Photo</button>
+                                    
+                                    <div class="d-grid gap-2 mb-3">
+                                        <button type="button" id="capture-btn" class="btn btn-primary">
+                                            <i class="fas fa-camera"></i> Capture Face Photo
+                                        </button>
+                                        <button type="button" id="reset-btn" class="btn btn-outline-secondary d-none">
+                                            <i class="fas fa-redo"></i> Retake Photo
+                                        </button>
                                     </div>
                                 </div>
-                                <input type="hidden" id="face_data" name="face_data" required>
-                                <div id="face-error" class="text-danger small mt-1" style="display:none;">Face photo is mandatory for registration.</div>
+                                <input type="hidden" name="face_image" id="face_image" required>
+                                
+                                <div class="alert alert-warning py-2 small mb-0">
+                                    <i class="fas fa-info-circle"></i> Registration requires face capture for security.
+                                </div>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm">
-                            <i class="fas fa-user-plus"></i> Create Student Account
-                        </button>
+                        <div class="mt-4 pt-3 border-top text-center">
+                            <button type="submit" id="submit-btn" class="btn btn-success btn-lg px-5 shadow" disabled>
+                                <i class="fas fa-user-plus"></i> Complete Registration
+                            </button>
+                        </div>
                     </form>
 
-                    <script>
-                        const video = document.getElementById('webcam');
-                        const canvas = document.getElementById('canvas');
-                        const captureBtn = document.getElementById('capture-pic');
-                        const startBtn = document.getElementById('start-camera');
-                        const retakeBtn = document.getElementById('retake-pic');
-                        const faceDataInput = document.getElementById('face_data');
-                        const facePreview = document.getElementById('face-preview');
-                        const webcamContainer = document.getElementById('webcam-container');
-                        const previewContainer = document.getElementById('preview-container');
-                        const faceStatus = document.getElementById('face-status');
-
-                        let stream = null;
-
-                        startBtn.addEventListener('click', async () => {
-                            try {
-                                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                                video.srcObject = stream;
-                                startBtn.style.display = 'none';
-                                captureBtn.disabled = false;
-                                faceStatus.textContent = "Ready: Look at Camera";
-                                faceStatus.className = "badge bg-info mb-2";
-                            } catch (err) {
-                                console.error("Webcam Error:", err);
-                                faceStatus.textContent = "Error: Camera access denied";
-                                faceStatus.className = "badge bg-danger mb-2";
-                            }
-                        });
-
-                        captureBtn.addEventListener('click', () => {
-                            const context = canvas.getContext('2d');
-                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                            
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                            faceDataInput.value = dataUrl;
-                            facePreview.src = dataUrl;
-                            
-                            webcamContainer.style.display = 'none';
-                            previewContainer.style.display = 'block';
-                            
-                            if (stream) {
-                                stream.getTracks().forEach(track => track.stop());
-                            }
-                            
-                            faceStatus.textContent = "Face Captured!";
-                            faceStatus.className = "badge bg-success mb-2";
-                        });
-
-                        retakeBtn.addEventListener('click', () => {
-                            webcamContainer.style.display = 'block';
-                            previewContainer.style.display = 'none';
-                            startBtn.click(); // Re-enable camera
-                            faceDataInput.value = "";
-                        });
-
-                        // Form validation for face
-                        document.querySelector('form').addEventListener('submit', function(e) {
-                            if (!faceDataInput.value) {
-                                e.preventDefault();
-                                document.getElementById('face-error').style.display = 'block';
-                                alert("Please capture your photo for face verification registration.");
-                            }
-                        });
-                    </script>
-
-                    <hr>
-                    <p class="text-center mb-0">
+                    <p class="text-center mt-4 mb-0">
                         Already have an account? 
-                        <a href="{{ url_for('auth.login') }}">Login here</a>
+                        <a href="{{ url_for('auth.login') }}" class="fw-bold">Login here</a>
                     </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const faceInput = document.getElementById('face_image');
+    const submitBtn = document.getElementById('submit-btn');
+    const overlay = document.getElementById('capture-overlay');
+
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { width: 640, height: 480 }, 
+                audio: false 
+            });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("Camera Error: ", err);
+            alert("Camera access is mandatory for registration. Please enable your camera.");
+        }
+    }
+
+    startCamera();
+
+    captureBtn.addEventListener('click', () => {
+        const context = canvas.getContext('2d');
+        // Capture a high-res shot
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+        faceInput.value = dataURL;
+        
+        overlay.classList.remove('d-none');
+        captureBtn.classList.add('d-none');
+        resetBtn.classList.remove('d-none');
+        submitBtn.disabled = false;
+        video.classList.add('opacity-50');
+    });
+
+    resetBtn.addEventListener('click', () => {
+        overlay.classList.add('d-none');
+        captureBtn.classList.remove('d-none');
+        resetBtn.classList.add('d-none');
+        submitBtn.disabled = true;
+        faceInput.value = '';
+        video.classList.remove('opacity-50');
+    });
+
+    document.getElementById('registration-form').addEventListener('submit', (e) => {
+        if (!faceInput.value) {
+            e.preventDefault();
+            alert("Please capture your face photo before submitting.");
+        }
+    });
+</script>
 {% endblock %}
