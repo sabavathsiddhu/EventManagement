@@ -163,6 +163,7 @@ def register_student():
 
 
 @auth_bp.route('/register/organiser', methods=['GET', 'POST'])
+@login_required('admin')
 def register_organiser():
     """Event organiser registration (by admin only)"""
     if request.method == 'POST':
