@@ -8,12 +8,12 @@
         <div class="col-md-9">
             <div class="card shadow border-0 overflow-hidden">
                 <div class="card-header bg-success text-white py-3">
-                    <h4 class="mb-0 text-center"><i class="fas fa-user-plus"></i> Student Face Registration</h4>
+                    <h4 class="mb-0 text-center"><i class="fas fa-user-plus"></i> Student Registration</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" id="registration-form">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <h5 class="border-bottom pb-2 mb-3">Login Details</h5>
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Full Name *</label>
@@ -56,39 +56,10 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="col-md-6 bg-light rounded p-4">
-                                <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-camera"></i> Face Security Registration</h5>
-                                <p class="small text-muted mb-3">The system will use this photo to mark your attendance automatically. Please look directly at the camera.</p>
-                                
-                                <div class="text-center">
-                                    <div id="camera-container" class="position-relative d-inline-block bg-dark rounded border border-3 border-success shadow-sm mb-3" style="width: 100%; max-width: 320px; aspect-ratio: 4/3; overflow: hidden;">
-                                        <video id="video" width="320" height="240" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                                        <canvas id="canvas" width="600" height="450" class="d-none"></canvas>
-                                        <div id="capture-overlay" class="position-absolute top-50 start-50 translate-middle d-none text-white badge bg-success p-3 fs-6">
-                                            <i class="fas fa-check-circle fa-2x d-block mb-1"></i> Face Linked!
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-grid gap-2 mb-3">
-                                        <button type="button" id="capture-btn" class="btn btn-primary">
-                                            <i class="fas fa-camera"></i> Capture Face Photo
-                                        </button>
-                                        <button type="button" id="reset-btn" class="btn btn-outline-secondary d-none">
-                                            <i class="fas fa-redo"></i> Retake Photo
-                                        </button>
-                                    </div>
-                                </div>
-                                <input type="hidden" name="face_image" id="face_image" required>
-                                
-                                <div class="alert alert-warning py-2 small mb-0">
-                                    <i class="fas fa-info-circle"></i> Registration requires face capture for security.
-                                </div>
-                            </div>
                         </div>
 
                         <div class="mt-4 pt-3 border-top text-center">
-                            <button type="submit" id="submit-btn" class="btn btn-success btn-lg px-5 shadow" disabled>
+                            <button type="submit" id="submit-btn" class="btn btn-success btn-lg px-5 shadow">
                                 <i class="fas fa-user-plus"></i> Complete Registration
                             </button>
                         </div>
@@ -104,59 +75,4 @@
     </div>
 </div>
 
-<script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const captureBtn = document.getElementById('capture-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const faceInput = document.getElementById('face_image');
-    const submitBtn = document.getElementById('submit-btn');
-    const overlay = document.getElementById('capture-overlay');
-
-    async function startCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { width: 640, height: 480 }, 
-                audio: false 
-            });
-            video.srcObject = stream;
-        } catch (err) {
-            console.error("Camera Error: ", err);
-            alert("Camera access is mandatory for registration. Please enable your camera.");
-        }
-    }
-
-    startCamera();
-
-    captureBtn.addEventListener('click', () => {
-        const context = canvas.getContext('2d');
-        // Capture a high-res shot
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-        faceInput.value = dataURL;
-        
-        overlay.classList.remove('d-none');
-        captureBtn.classList.add('d-none');
-        resetBtn.classList.remove('d-none');
-        submitBtn.disabled = false;
-        video.classList.add('opacity-50');
-    });
-
-    resetBtn.addEventListener('click', () => {
-        overlay.classList.add('d-none');
-        captureBtn.classList.remove('d-none');
-        resetBtn.classList.add('d-none');
-        submitBtn.disabled = true;
-        faceInput.value = '';
-        video.classList.remove('opacity-50');
-    });
-
-    document.getElementById('registration-form').addEventListener('submit', (e) => {
-        if (!faceInput.value) {
-            e.preventDefault();
-            alert("Please capture your face photo before submitting.");
-        }
-    });
-</script>
 {% endblock %}
