@@ -17,7 +17,10 @@
             <h1 class="display-6">{{ event.event_name }}</h1>
             <p class="text-muted"><i class="fas fa-calendar"></i> {{ event.event_date }} | <i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
         </div>
-        <div class="col-md-4 text-end">
+        <div class="col-md-5 text-end">
+            <a href="{{ url_for('admin.mark_attendance', event_id=event.event_id) }}" class="btn btn-success shadow-sm me-2">
+                <i class="fas fa-check-square"></i> Mark Attendance
+            </a>
             <a href="{{ url_for('admin.generate_certificates', event_id=event.event_id) }}" class="btn btn-warning shadow-sm">
                 <i class="fas fa-certificate"></i> Generate Certificates
             </a>

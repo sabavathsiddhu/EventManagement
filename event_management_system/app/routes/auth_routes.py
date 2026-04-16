@@ -141,14 +141,38 @@ def register_student():
             # Hash password
             password_hash = hash_password(password)
             
+            # Handle Face Capture Data
+            face_data = request.form.get('face_data')
+            face_encoding_binary = None
+            
+            if face_data:
+                try:
+                    from app.modules.face_recognition_module import get_face_manager
+                    import pickle
+                    face_manager = get_face_manager()
+                    
+                    # Process base64 and get encoding
+                    encoding, _ = face_manager.process_base64_face("temp_reg", face_data)
+                    
+                    if encoding is not None:
+                        face_encoding_binary = pickle.dumps(encoding)
+                    else:
+                        flash('No face detected in the photo. Please try again with a clear face shot.', 'warning')
+                        return render_template('auth/register_student.html')
+                except Exception as e:
+                    print(f"Face processing error: {e}")
+            else:
+                flash('Face capture is mandatory for student registration.', 'danger')
+                return render_template('auth, register_student.html')
+
             # Insert student
             query = """
                 INSERT INTO students 
-                (name, email, password_hash, cgpa, attendance, enrollment_number, department, phone) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (name, email, password_hash, cgpa, attendance, enrollment_number, department, phone, face_encoding) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             params = (name, email, password_hash, float(cgpa), float(attendance), 
-                     enrollment_number, department, phone)
+                     enrollment_number, department, phone, face_encoding_binary)
             
             student_id = insert(query, params)
             

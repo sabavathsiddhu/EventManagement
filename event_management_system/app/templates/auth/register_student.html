@@ -62,10 +62,103 @@
                             <input type="tel" class="form-control" id="phone" name="phone">
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-user-plus"></i> Register
+                        <!-- Face Capture Section -->
+                        <div class="card bg-light mb-4 border-0">
+                            <div class="card-body">
+                                <h6 class="card-title text-primary"><i class="fas fa-camera"></i> Face Verification Registration *</h6>
+                                <p class="small text-muted mb-3">Please look directly at your webcam to register your face identity.</p>
+                                
+                                <div id="webcam-container" class="text-center mb-3">
+                                    <video id="webcam" width="320" height="240" autoplay playsinline class="rounded border shadow-sm bg-dark" style="width: 100%; max-width: 400px;"></video>
+                                    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+                                    <div id="capture-overlay" class="mt-2">
+                                        <div id="face-status" class="badge bg-secondary mb-2">Camera Loading...</div>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" id="start-camera" class="btn btn-sm btn-outline-primary">Enable Camera</button>
+                                            <button type="button" id="capture-pic" class="btn btn-sm btn-primary" disabled>Take Photo</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="preview-container" class="text-center" style="display:none;">
+                                    <img id="face-preview" class="rounded border shadow-sm" style="width: 100%; max-width: 200px;">
+                                    <div class="mt-2">
+                                        <button type="button" id="retake-pic" class="btn btn-sm btn-outline-secondary">Retake Photo</button>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="face_data" name="face_data" required>
+                                <div id="face-error" class="text-danger small mt-1" style="display:none;">Face photo is mandatory for registration.</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm">
+                            <i class="fas fa-user-plus"></i> Create Student Account
                         </button>
                     </form>
+
+                    <script>
+                        const video = document.getElementById('webcam');
+                        const canvas = document.getElementById('canvas');
+                        const captureBtn = document.getElementById('capture-pic');
+                        const startBtn = document.getElementById('start-camera');
+                        const retakeBtn = document.getElementById('retake-pic');
+                        const faceDataInput = document.getElementById('face_data');
+                        const facePreview = document.getElementById('face-preview');
+                        const webcamContainer = document.getElementById('webcam-container');
+                        const previewContainer = document.getElementById('preview-container');
+                        const faceStatus = document.getElementById('face-status');
+
+                        let stream = null;
+
+                        startBtn.addEventListener('click', async () => {
+                            try {
+                                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                video.srcObject = stream;
+                                startBtn.style.display = 'none';
+                                captureBtn.disabled = false;
+                                faceStatus.textContent = "Ready: Look at Camera";
+                                faceStatus.className = "badge bg-info mb-2";
+                            } catch (err) {
+                                console.error("Webcam Error:", err);
+                                faceStatus.textContent = "Error: Camera access denied";
+                                faceStatus.className = "badge bg-danger mb-2";
+                            }
+                        });
+
+                        captureBtn.addEventListener('click', () => {
+                            const context = canvas.getContext('2d');
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            faceDataInput.value = dataUrl;
+                            facePreview.src = dataUrl;
+                            
+                            webcamContainer.style.display = 'none';
+                            previewContainer.style.display = 'block';
+                            
+                            if (stream) {
+                                stream.getTracks().forEach(track => track.stop());
+                            }
+                            
+                            faceStatus.textContent = "Face Captured!";
+                            faceStatus.className = "badge bg-success mb-2";
+                        });
+
+                        retakeBtn.addEventListener('click', () => {
+                            webcamContainer.style.display = 'block';
+                            previewContainer.style.display = 'none';
+                            startBtn.click(); // Re-enable camera
+                            faceDataInput.value = "";
+                        });
+
+                        // Form validation for face
+                        document.querySelector('form').addEventListener('submit', function(e) {
+                            if (!faceDataInput.value) {
+                                e.preventDefault();
+                                document.getElementById('face-error').style.display = 'block';
+                                alert("Please capture your photo for face verification registration.");
+                            }
+                        });
+                    </script>
 
                     <hr>
                     <p class="text-center mb-0">

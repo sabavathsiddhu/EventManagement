@@ -457,3 +457,106 @@ def create_certificates():
         return jsonify({'success': True, 'message': f'Generated {count} certificates'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/attendance/<int:event_id>')
+@login_required('admin')
+def mark_attendance(event_id):
+    """Mark attendance for event (Admin)"""
+    try:
+        event = get_one("SELECT * FROM events WHERE event_id = %s", (event_id,))
+        if not event:
+            flash('Event not found', 'danger')
+            return redirect(url_for('admin.manage_events'))
+        
+        # Get registered students
+        students = get_all("""
+            SELECT r.registration_id, s.student_id, s.name, s.email,
+                   COALESCE(a.attendance_status, 'absent') as attendance_status
+            FROM registrations r
+            JOIN students s ON r.student_id = s.student_id
+            LEFT JOIN attendance a ON r.registration_id = a.registration_id
+            WHERE r.event_id = %s
+            ORDER BY s.name
+        """, (event_id,))
+        
+        return render_template('admin/mark_attendance.html', event=event, students=students)
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+        return redirect(url_for('admin.manage_events'))
+
+@admin_bp.route('/attendance/save', methods=['POST'])
+@login_required('admin')
+def save_attendance():
+    """Save attendance records (Admin)"""
+    try:
+        data = request.get_json()
+        event_id = data.get('event_id')
+        attendance_records = data.get('attendance', [])
+        
+        for record in attendance_records:
+            reg_id = record.get('registration_id')
+            status = record.get('status')
+            
+            existing = get_one("SELECT attendance_id FROM attendance WHERE registration_id = %s", (reg_id,))
+            if existing:
+                update("UPDATE attendance SET attendance_status = %s, check_in_time = NOW() WHERE registration_id = %s", (status, reg_id))
+            else:
+                insert("""
+                    INSERT INTO attendance (registration_id, event_id, student_id, attendance_status, check_in_time)
+                    SELECT registration_id, event_id, student_id, %s, NOW() FROM registrations WHERE registration_id = %s
+                """, (status, reg_id))
+        
+        update("""
+            UPDATE registrations SET registration_status = 'participated' 
+            WHERE event_id = %s AND registration_id IN (
+                SELECT registration_id FROM attendance WHERE event_id = %s AND attendance_status = 'present'
+            )
+        """, (event_id, event_id))
+        
+        return jsonify({'success': True, 'message': 'Attendance saved successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@admin_bp.route('/face-recognition/<int:event_id>', methods=['POST'])
+@login_required('admin')
+def face_recognition_attendance(event_id):
+    """Mark attendance using face recognition (Admin)"""
+    try:
+        data = request.get_json(silent=True) or {}
+        face_image_b64 = data.get('face_image')
+        
+        if not face_image_b64:
+            return jsonify({'success': False, 'message': 'Face image required.'}), 400
+            
+        from app.modules.face_recognition_module import get_face_manager
+        import pickle
+        fm = get_face_manager()
+        
+        # Fetch registered students ONLY for this event
+        students = get_all("""
+            SELECT r.registration_id, s.student_id, s.name, s.face_encoding 
+            FROM registrations r
+            JOIN students s ON r.student_id = s.student_id
+            WHERE r.event_id = %s
+        """, (event_id,))
+        
+        best_match, img_bytes = fm.recognize_single_face(face_image_b64, students)
+        
+        if best_match:
+            reg_id = best_match['registration_id']
+            existing = get_one("SELECT attendance_id FROM attendance WHERE registration_id=%s", (reg_id,))
+            if existing:
+                update("UPDATE attendance SET attendance_status='present', check_in_time=NOW(), face_recognition_used=True WHERE registration_id=%s", (reg_id,))
+            else:
+                insert("""
+                    INSERT INTO attendance (registration_id, event_id, student_id, attendance_status, check_in_time, face_recognition_used) 
+                    VALUES (%s, %s, %s, 'present', NOW(), True)
+                """, (reg_id, event_id, best_match['student_id']))
+            
+            update("UPDATE registrations SET registration_status='participated' WHERE registration_id=%s", (reg_id,))
+            return jsonify({'success': True, 'message': f"Match Found: {best_match['name']}. Attendance marked!"})
+        
+        return jsonify({'success': False, 'message': 'Face not recognized among event attendees.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
