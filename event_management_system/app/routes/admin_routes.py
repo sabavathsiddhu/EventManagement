@@ -458,7 +458,6 @@ def create_certificates():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
 @admin_bp.route('/attendance/<int:event_id>')
 @login_required('admin')
 def mark_attendance(event_id):
@@ -504,17 +503,11 @@ def save_attendance():
             else:
                 insert("""
                     INSERT INTO attendance (registration_id, event_id, student_id, attendance_status, check_in_time)
-                    SELECT registration_id, event_id, student_id, %s, NOW() FROM registrations WHERE registration_id = %s
+                    SELECT r.registration_id, r.event_id, r.student_id, %s, NOW()
+                    FROM registrations r WHERE r.registration_id = %s
                 """, (status, reg_id))
         
-        update("""
-            UPDATE registrations SET registration_status = 'participated' 
-            WHERE event_id = %s AND registration_id IN (
-                SELECT registration_id FROM attendance WHERE event_id = %s AND attendance_status = 'present'
-            )
-        """, (event_id, event_id))
-        
-        return jsonify({'success': True, 'message': 'Attendance saved successfully'})
+        return jsonify({'success': True, 'message': 'Attendance saved'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -525,15 +518,13 @@ def face_recognition_attendance(event_id):
     try:
         data = request.get_json(silent=True) or {}
         face_image_b64 = data.get('face_image')
-        
         if not face_image_b64:
-            return jsonify({'success': False, 'message': 'Face image required.'}), 400
+            return jsonify({'success': False, 'message': 'Face image required'}), 400
             
         from app.modules.face_recognition_module import get_face_manager
-        import pickle
+        import os, uuid
         fm = get_face_manager()
         
-        # Fetch registered students ONLY for this event
         students = get_all("""
             SELECT r.registration_id, s.student_id, s.name, s.face_encoding 
             FROM registrations r
@@ -542,21 +533,25 @@ def face_recognition_attendance(event_id):
         """, (event_id,))
         
         best_match, img_bytes = fm.recognize_single_face(face_image_b64, students)
-        
         if best_match:
+            # Save the captured face image
+            faces_upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'faces')
+            os.makedirs(faces_upload_dir, exist_ok=True)
+            img_name = f"admin_att_{event_id}_{best_match['student_id']}_{uuid.uuid4().hex[:8]}.jpg"
+            with open(os.path.join(faces_upload_dir, img_name), 'wb') as f:
+                f.write(img_bytes)
+                
             reg_id = best_match['registration_id']
             existing = get_one("SELECT attendance_id FROM attendance WHERE registration_id=%s", (reg_id,))
             if existing:
-                update("UPDATE attendance SET attendance_status='present', check_in_time=NOW(), face_recognition_used=True WHERE registration_id=%s", (reg_id,))
+                update("UPDATE attendance SET attendance_status='present', check_in_time=NOW(), face_recognition_used=True, attendance_face_image=%s WHERE registration_id=%s", (img_name, reg_id))
             else:
-                insert("""
-                    INSERT INTO attendance (registration_id, event_id, student_id, attendance_status, check_in_time, face_recognition_used) 
-                    VALUES (%s, %s, %s, 'present', NOW(), True)
-                """, (reg_id, event_id, best_match['student_id']))
+                insert("INSERT INTO attendance (registration_id, event_id, student_id, attendance_status, check_in_time, face_recognition_used, attendance_face_image) VALUES (%s, %s, %s, 'present', NOW(), True, %s)", (reg_id, event_id, best_match['student_id'], img_name))
             
-            update("UPDATE registrations SET registration_status='participated' WHERE registration_id=%s", (reg_id,))
-            return jsonify({'success': True, 'message': f"Match Found: {best_match['name']}. Attendance marked!"})
-        
-        return jsonify({'success': False, 'message': 'Face not recognized among event attendees.'})
+            return jsonify({'success': True, 'message': f"Matched: {best_match['name']}. Attendance marked Present."})
+        else:
+            return jsonify({'success': False, 'message': 'Match not found.'})
+            
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
