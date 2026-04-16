@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Certificates - Student{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-6"><i class="fas fa-certificate"></i> My Certificates</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if certificates %}
+            {% for cert in certificates %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-certificate fa-5x text-warning mb-3"></i>
+                            <h5 class="card-title">{{ cert.event_name }}</h5>
+                            <p class="card-text">
+                                <small>Certificate #: {{ cert.certificate_number }}</small><br>
+                                <small>Issued: {{ cert.issue_date }}</small>
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('student.download_certificate', certificate_id=cert.certificate_id) }}" class="btn btn-primary w-100">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            <small class="text-muted d-block mt-2">
+                                Downloaded: {{ cert.download_count }} times
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> You don't have any certificates yet. 
+                    Participate in events and get marked present to earn certificates!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

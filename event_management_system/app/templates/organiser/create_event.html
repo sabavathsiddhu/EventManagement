@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event - Organiser{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="display-6"><i class="fas fa-plus-circle"></i> Create New Event</h1>
+                <a href="{{ url_for('organiser.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-plus"></i> Event Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="event_name" class="form-label">Event Name *</label>
+                            <input type="text" class="form-control" id="event_name" name="event_name" required 
+                                   placeholder="Enter event name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Describe the event..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="event_date" class="form-label">Event Date *</label>
+                                <input type="date" class="form-control" id="event_date" name="event_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="event_time" class="form-label">Event Time</label>
+                                <input type="time" class="form-control" id="event_time" name="event_time">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       placeholder="Enter venue/location">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="max_capacity" class="form-label">Max Capacity</label>
+                                <input type="number" class="form-control" id="max_capacity" name="max_capacity" 
+                                       placeholder="Maximum participants">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="min_cgpa" class="form-label">Min CGPA Requirement</label>
+                                <input type="number" class="form-control" id="min_cgpa" name="min_cgpa" 
+                                       min="0" max="10" step="0.01" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="min_attendance" class="form-label">Min Attendance Requirement (%)</label>
+                                <input type="number" class="form-control" id="min_attendance" name="min_attendance" 
+                                       min="0" max="100" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_paid" name="is_paid" onchange="togglePaidOptions()">
+                                <label class="form-check-label" for="is_paid">
+                                    This is a paid event
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="fee_section" style="display: none;">
+                            <label for="event_fee" class="form-label">Event Fee</label>
+                            <input type="number" class="form-control" id="event_fee" name="event_fee" min="0" step="0.01"
+                                   placeholder="Enter fee amount">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Create Event
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> Set CGPA & attendance to 0 to allow all students</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> Leave capacity empty for unlimited</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> Event date must be in the future</li>
+                        <li class="mb-2"><i class="fas fa-check text-success"></i> Paid events require Razorpay setup</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePaidOptions() {
+    const isPaid = document.getElementById('is_paid').checked;
+    document.getElementById('fee_section').style.display = isPaid ? 'block' : 'none';
+}
+</script>
+{% endblock %}

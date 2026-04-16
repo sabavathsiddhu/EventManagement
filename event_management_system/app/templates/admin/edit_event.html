@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-6"><i class="fas fa-edit"></i> Edit Event</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="event_name" class="form-label">Event Name *</label>
+                            <input type="text" class="form-control" id="event_name" name="event_name" value="{{ event.event_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ event.description or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="event_date" class="form-label">Event Date *</label>
+                                <input type="date" class="form-control" id="event_date" name="event_date" value="{{ event.event_date }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="event_time" class="form-label">Event Time</label>
+                                <input type="time" class="form-control" id="event_time" name="event_time" value="{{ event.event_time or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" value="{{ event.location or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="max_capacity" class="form-label">Max Capacity</label>
+                                <input type="number" class="form-control" id="max_capacity" name="max_capacity" value="{{ event.max_capacity or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="min_cgpa" class="form-label">Min CGPA Requirement</label>
+                                <input type="number" class="form-control" id="min_cgpa" name="min_cgpa" min="0" max="10" step="0.01" value="{{ event.min_cgpa }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="min_attendance" class="form-label">Min Attendance Requirement (%)</label>
+                                <input type="number" class="form-control" id="min_attendance" name="min_attendance" min="0" max="100" step="0.01" value="{{ event.min_attendance }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_paid" name="is_paid" {% if event.is_paid %}checked{% endif %} onchange="togglePaidOptions()">
+                                <label class="form-check-label" for="is_paid">
+                                    This is a paid event
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="fee_section" {% if not event.is_paid %}style="display: none;"{% endif %}>
+                            <label for="event_fee" class="form-label">Event Fee (₹)</label>
+                            <input type="number" class="form-control" id="event_fee" name="event_fee" min="0" step="0.01" value="{{ event.event_fee or 0 }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="event_status" class="form-label">Event Status</label>
+                            <select class="form-select" id="event_status" name="event_status">
+                                <option value="upcoming" {% if event.event_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                                <option value="ongoing" {% if event.event_status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                                <option value="completed" {% if event.event_status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if event.event_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="organiser_id" class="form-label">Assign Organiser</label>
+                            <select class="form-select" id="organiser_id" name="organiser_id">
+                                <option value="">Select Organiser</option>
+                                {% for org in organisers %}
+                                    <option value="{{ org.organiser_id }}" {% if event.organiser_id == org.organiser_id %}selected{% endif %}>{{ org.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save"></i> Update Event
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{ url_for('admin.manage_events') }}" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePaidOptions() {
+    const isPaid = document.getElementById('is_paid').checked;
+    document.getElementById('fee_section').style.display = isPaid ? 'block' : 'none';
+}
+</script>
+{% endblock %}

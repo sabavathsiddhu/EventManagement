@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+ENV/
+instance/
+.DS_Store
+*.log
+certificates/
+stored_face_encodings/
+.vercel/

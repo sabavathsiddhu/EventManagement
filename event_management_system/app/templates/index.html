@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Smart Campus Event Management{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-gradient-primary text-white py-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-4">Smart Campus Event Management</h1>
+        <p class="lead mb-4">Manage events, registrations, and certificates efficiently</p>
+        <div class="btn-group-vertical btn-group-lg d-md-flex justify-content-center gap-3" role="group">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{{ url_for('auth.register_student') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus"></i> Register as Student
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-altfa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Event Management</h5>
+                    <p class="card-text">Create and manage events with eligibility criteria</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Student Registration</h5>
+                    <p class="card-text">Register for events based on your CGPA and attendance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-certificate fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Certificates</h5>
+                    <p class="card-text">Get certificates for events you participate in</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-face fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Face Recognition</h5>
+                    <p class="card-text">Automated attendance marking using face recognition</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-credit-card fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">Online Payments</h5>
+                    <p class="card-text">Secure Razorpay payment integration for paid events</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-light py-5 mt-5">
+    <div class="container">
+        <h2 class="text-center mb-5">System Features</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Three User Roles (Student, Admin, Organiser)</h6>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Eligibility Criteria Management</h6>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Automated Certificate Generation</h6>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Payment Integration (Razorpay)</h6>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Face Recognition Attendance</h6>
+            </div>
+            <div class="col-md-6 mb-3">
+                <h6><i class="fas fa-check-circle text-success"></i> Real-time Analytics & Reports</h6>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

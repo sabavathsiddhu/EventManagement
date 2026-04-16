@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - Organiser{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-6"><i class="fas fa-check-square"></i> Mark Attendance</h1>
+            <p class="text-muted">Event: {{ event.event_name }} | Date: {{ event.event_date }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="mb-3 d-flex flex-wrap gap-2">
+                        <button onclick="markAllPresent()" class="btn btn-success">
+                            <i class="fas fa-check"></i> Mark All Present
+                        </button>
+                        <button onclick="markAllAbsent()" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Mark All Absent
+                        </button>
+                        <button onclick="saveAttendance({{ event.event_id }})" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Attendance
+                        </button>
+                        <button onclick="openScannerModal()" class="btn btn-info text-white ms-auto">
+                            <i class="fas fa-camera"></i> Live Face Scan Match
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="attendanceTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Enrollment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                    <tr>
+                                        <td>{{ student.name }}</td>
+                                        <td>{{ student.enrollment_number }}</td>
+                                        <td>
+                                            <select class="form-select form-select-sm attendance-status" data-registration-id="{{ student.registration_id }}">
+                                                <option value="absent" {% if student.attendance_status == 'absent' %}selected{% endif %}>Absent</option>
+                                                <option value="present" {% if student.attendance_status == 'present' %}selected{% endif %}>Present</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function markAllPresent() {
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        select.value = 'present';
+    });
+}
+
+function markAllAbsent() {
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        select.value = 'absent';
+    });
+}
+
+function saveAttendance(eventId) {
+    const attendance = [];
+    document.querySelectorAll('.attendance-status').forEach(select => {
+        attendance.push({
+            registration_id: select.dataset.registrationId,
+            status: select.value
+        });
+    });
+
+    fetch("{{ url_for('organiser.save_attendance') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            event_id: eventId,
+            attendance: attendance
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+// Face Scanner Modal Logic
+let stream = null;
+const eventId = {{ event.event_id }};
+
+function openScannerModal() {
+    const scannerModal = new bootstrap.Modal(document.getElementById('faceScannerModal'));
+    scannerModal.show();
+    startScannerCamera();
+}
+
+async function startScannerCamera() {
+    const video = document.getElementById('scannerVideoElement');
+    
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            video.play();
+        };
+    } catch (err) {
+        console.error("Error accessing camera: ", err);
+        alert("Camera access denied or unavailable.");
+    }
+}
+
+function stopScannerCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+}
+
+function processScan() {
+    if (!stream) {
+        alert("Camera is not active.");
+        return;
+    }
+    
+    const btn = document.getElementById('processScanBtn');
+    const originalBtnHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+    btn.disabled = true;
+
+    const video = document.getElementById('scannerVideoElement');
+    
+    // Slight delay to ensure video buffer is flushed to canvas
+    setTimeout(() => {
+        if (video.videoWidth === 0) {
+            alert("Camera stream not ready. Wait a second.");
+            btn.innerHTML = originalBtnHTML;
+            btn.disabled = false;
+            return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const faceImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+        
+        fetch(`{{ url_for('organiser.face_recognition_attendance', event_id=event.event_id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ face_image: faceImageBase64 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message); // e.g. Matched with registered student
+                location.reload();
+            } else {
+                alert(data.message); // e.g. Unmatched with registered student
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while verifying the face.');
+        })
+        .finally(() => {
+            btn.innerHTML = originalBtnHTML;
+            btn.disabled = false;
+        });
+    }, 100);
+}
+</script>
+
+<!-- Face Scanner Modal for Attendance -->
+<div class="modal fade" id="faceScannerModal" tabindex="-1" aria-labelledby="faceScannerModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="faceScannerModalLabel"><i class="fas fa-camera"></i> Live Attendance Scan</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopScannerCamera()"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="text-muted small mb-3">Ensure the student faces the camera directly.</p>
+        <div class="position-relative d-inline-block bg-dark rounded overflow-hidden shadow-sm" style="width: 100%; max-width: 400px; aspect-ratio: 4/3;">
+            <video id="scannerVideoElement" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center border-top-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopScannerCamera()">Cancel</button>
+        <button type="button" class="btn btn-info text-white" id="processScanBtn" onclick="processScan()">
+            <i class="fas fa-search"></i> Match Student Focus
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

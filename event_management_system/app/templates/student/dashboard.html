@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Student{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-6">
+                <i class="fas fa-home"></i> Welcome, {{ student.name }}!
+            </h1>
+            <p class="text-muted">Manage your events and certificates</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase text-white-50">CGPA</h6>
+                            <h3>{{ student.cgpa }}</h3>
+                        </div>
+                        <i class="fas fa-chart-bar fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase text-white-50">Attendance</h6>
+                            <h3>{{ student.attendance }}%</h3>
+                        </div>
+                        <i class="fas fa-percent fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase text-white-50">Registered</h6>
+                            <h3>{{ registered_events|length }}</h3>
+                        </div>
+                        <i class="fas fa-clipboard-list fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase text-white-50">Certificates</h6>
+                            <h3>{{ certificates|length }}</h3>
+                        </div>
+                        <i class="fas fa-certificate fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Upcoming Events -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar"></i> Upcoming Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_events %}
+                        <div class="list-group list-group-flush">
+                            {% for event in upcoming_events[:5] %}
+                                <a href="{{ url_for('student.view_events') }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ event.event_name }}</h6>
+                                        <small>{{ event.event_date }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ event.location }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('student.view_events') }}" class="btn btn-sm btn-primary">
+                                View All Events
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No upcoming events available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Events -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Registered Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if registered_events %}
+                        <div class="list-group list-group-flush">
+                            {% for event in registered_events[:5] %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ event.event_name }}</h6>
+                                        <span class="badge bg-info">{{ event.registration_status }}</span>
+                                    </div>
+                                    <p class="mb-1 text-muted">
+                                        <small>{{ event.event_date }} - {{ event.location }}</small>
+                                    </p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't registered for any events yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('student.view_events') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-calendar-plus"></i> Browse Events
+                    </a>
+                    <a href="{{ url_for('student.view_certificates') }}" class="btn btn-success me-2">
+                        <i class="fas fa-certificate"></i> View Certificates
+                    </a>
+                    <a href="{{ url_for('student.profile') }}" class="btn btn-info">
+                        <i class="fas fa-user-cog"></i> Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

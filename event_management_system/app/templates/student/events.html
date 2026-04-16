@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Student{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-6"><i class="fas fa-calendar"></i> Available Events</h1>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="search" class="form-control" placeholder="Search events...">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" name="date" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="row">
+        {% if events %}
+            {% for event in events %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">{{ event.event_name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted"><strong>Date:</strong> {{ event.event_date }}</p>
+                            <p><strong>Location:</strong> {{ event.location }}</p>
+                            {% if event.description %}
+                                <p><strong>Description:</strong> {{ event.description[:100] }}...</p>
+                            {% endif %}
+
+                            <div class="mb-3">
+                                <strong>Eligibility Requirements:</strong>
+                                <div class="alert alert-info p-2 mt-2">
+                                    <small>
+                                        <i class="fas fa-chart-bar"></i> Min CGPA: {{ event.min_cgpa }}<br>
+                                        <i class="fas fa-percent"></i> Min Attendance: {{ event.min_attendance }}%
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Your Status:</strong><br>
+                                <small class="text-muted">Your CGPA: {{ student.cgpa }} | Your Attendance: {{ student.attendance }}%</small>
+                            </div>
+
+                            {% if event.is_paid %}
+                                <div class="alert alert-warning p-2">
+                                    <i class="fas fa-rupee-sign"></i> Paid Event - Fee: ₹{{ event.event_fee }}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success p-2">
+                                    <i class="fas fa-free-code-camp"></i> Free Event
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            {% if event.is_eligible %}
+                                {% if event.is_registered %}
+                                    <span class="badge bg-success">Already Registered</span>
+                                {% else %}
+                                    <button class="btn btn-success w-100 register-btn" data-event-id="{{ event.event_id }}">
+                                        <i class="fas fa-check"></i> Register Now
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger p-2 mb-0">
+                                    <small><strong>Ineligible:</strong><br>
+                                    {% for reason in event.ineligibility_reasons %}
+                                        • {{ reason }}<br>
+                                    {% endfor %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <div class="alert alert-info">No events available at the moment</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Face Capture Modal for Registration -->
+<div class="modal fade" id="faceCaptureModal" tabindex="-1" aria-labelledby="faceCaptureModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="faceCaptureModalLabel"><i class="fas fa-camera"></i> Face Capture Required</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopCamera()"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="text-muted small mb-3">Please align your face in the camera view. Registration requires a clear face image.</p>
+        <div class="position-relative d-inline-block bg-dark rounded overflow-hidden shadow-sm" style="width: 100%; max-width: 400px; aspect-ratio: 4/3;">
+            <video id="videoElement" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <div id="cameraStatus" class="position-absolute top-50 start-50 translate-middle text-white z-1">
+                <i class="fas fa-spinner fa-spin fa-2x mb-2"></i><br>Starting camera...
+            </div>
+        </div>
+        <canvas id="canvasElement" style="display:none;"></canvas>
+      </div>
+      <div class="modal-footer justify-content-center border-top-0 pt-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopCamera()">Cancel</button>
+        <button type="button" class="btn btn-success" id="captureBtn">
+            <i class="fas fa-camera"></i> Capture & Register
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let stream = null;
+let currentEventId = null;
+
+// Initialize camera when register button clicked
+document.querySelectorAll('.register-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        currentEventId = this.dataset.eventId;
+        
+        // Show modal
+        const captureModal = new bootstrap.Modal(document.getElementById('faceCaptureModal'));
+        captureModal.show();
+        
+        // Start camera
+        startCamera();
+    });
+});
+
+async function startCamera() {
+    const video = document.getElementById('videoElement');
+    const status = document.getElementById('cameraStatus');
+    status.style.display = 'block';
+    
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            video.play();
+            status.style.display = 'none';
+        };
+    } catch (err) {
+        console.error("Error accessing camera: ", err);
+        status.innerHTML = '<i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i><br>Camera access denied or unavailabe.';
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+}
+
+// Handle Capture and Submit
+document.getElementById('captureBtn').addEventListener('click', function() {
+    if (!stream) {
+        alert("Camera is not active.");
+        return;
+    }
+    
+    // Change UI state
+    const originalBtnHTML = this.innerHTML;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    this.disabled = true;
+
+    // Use a small timeout to ensure the video frame is ready and populated
+    setTimeout(() => {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasElement');
+        
+        if (video.videoWidth === 0) {
+            alert("Video steam is not ready yet. Please try again in a moment.");
+            this.innerHTML = originalBtnHTML;
+            this.disabled = false;
+            return;
+        }
+
+        // Configure canvas size to match video's actual resolution
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Get base64 image data
+        const faceImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+    
+        // Send to backend
+        fetch(`{{ url_for('student.register_event', event_id=0) }}`.replace('0', currentEventId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ face_image: faceImageBase64 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            stopCamera();
+            
+            if (data.success) {
+                // Close modal (standard approach without relying on exact BS instance mapping)
+                const modalEl = document.getElementById('faceCaptureModal');
+                const bsModal = bootstrap.Modal.getInstance(modalEl);
+                if (bsModal) bsModal.hide();
+
+                if (data.requires_payment) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                    location.reload();
+                }
+            } else {
+                alert('Error: ' + data.message);
+                
+                // Restore UI to try again
+                const capBtn = document.getElementById('captureBtn');
+                capBtn.innerHTML = originalBtnHTML;
+                capBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+            const capBtn = document.getElementById('captureBtn');
+            capBtn.innerHTML = originalBtnHTML;
+            capBtn.disabled = false;
+        });
+    }, 100);
+});
+</script>
+{% endblock %}
