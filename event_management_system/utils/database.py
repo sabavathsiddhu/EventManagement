@@ -33,15 +33,20 @@ def get_db_connection():
             else:
                 import psycopg2
                 from psycopg2.extras import RealDictCursor
-                g.db = psycopg2.connect(
-                    host=current_app.config['POSTGRES_HOST'],
-                    user=current_app.config['POSTGRES_USER'],
-                    password=current_app.config['POSTGRES_PASSWORD'],
-                    database=current_app.config['POSTGRES_DB'],
-                    port=current_app.config['POSTGRES_PORT'],
-                    cursor_factory=RealDictCursor,
-                    sslmode='require'
-                )
+                
+                # Check for full DATABASE_URL first
+                db_url = current_app.config.get('DATABASE_URL')
+                if db_url:
+                    g.db = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+                else:
+                    g.db = psycopg2.connect(
+                        host=current_app.config['POSTGRES_HOST'],
+                        user=current_app.config['POSTGRES_USER'],
+                        password=current_app.config['POSTGRES_PASSWORD'],
+                        database=current_app.config['POSTGRES_DB'],
+                        port=current_app.config['POSTGRES_PORT'],
+                        cursor_factory=RealDictCursor
+                    )
         except Exception as e:
             print(f"Error connecting to database: {e}")
             raise
